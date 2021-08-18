@@ -22,9 +22,7 @@ interface User {
 }
 
 serve({
-  "/": serveStatic("index.html", { baseUrl: import.meta.url }),
-  "/style.css": serveStatic("style.css", { baseUrl: import.meta.url }),
-  "/index.js": serveStatic("index.js", { baseUrl: import.meta.url }),
+  "/": serveStatic("public/index.html", { baseUrl: import.meta.url }),
   "/api/send": async (req) => {
     const msg = await req.json();
 
@@ -75,5 +73,6 @@ serve({
       headers: { "content-type": "text/event-stream" },
     });
   },
+  "/:filename+": serveStatic("public", { baseUrl: import.meta.url }),
   404: () => new Response("not found"),
 });

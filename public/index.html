@@ -6,6 +6,13 @@
     <h1>HTML</h1>
     <div id="app">
       <div>{{status}}</div>
+      <div>{{userMessages}}</div>
+
+      <div>
+        <div v-for="message in globalMessages">
+          <div>{{message.user.name}}: {{message.body}}</div>
+        </div>
+      </div>
 
       <div>
         <h3>Users</h3>
@@ -22,9 +29,11 @@
         {{user.id}}
       </div>
 
-      {{message}}
+      <form @submit.prevent="send">
+        <input type="text" v-model="message">
+        <button>Send</button>
+      </form>
 
-      <button @click="send()">Send</button>
     </div>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.14/vue.js"
