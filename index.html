@@ -7,6 +7,21 @@
     <div id="app">
       <div>{{status}}</div>
 
+      <div>
+        <h3>Users</h3>
+
+        <div v-for="user in users" :key="user.id">
+          <div>{{user.name}} ({{user.id}})</div>
+        </div>
+      </div>
+
+      <div>
+        user
+        <input type="text" v-model="user.name" />
+
+        {{user.id}}
+      </div>
+
       {{message}}
 
       <button @click="send()">Send</button>
