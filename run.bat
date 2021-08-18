@@ -1,1 +1,1 @@
-deployctl run --no-check --watch main.ts
+deployctl run --libs=ns,fetchevent --watch main.ts
