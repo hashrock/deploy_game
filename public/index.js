@@ -1,5 +1,23 @@
 let timer
 
+let app = new PIXI.Application({
+  width: window.innerWidth,
+  height: window.innerHeight,
+  antialias: false,
+  resolution: 1,
+})
+document.querySelector("#canvas").appendChild(app.view)
+PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+// Add map.jpg to the background
+const background = PIXI.Sprite.from("http://127.0.0.1:5500/public/denoland.jpg")
+background.width = app.screen.width * 2
+background.height = app.screen.height * 2
+background.x = 0
+background.y = 0
+app.stage.addChild(background)
+
+
+
 new Vue({
   el: "#app",
   data() {

@@ -3,7 +3,11 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>HTML</h1>
+    <div class="wrapper">
+      <div id="canvas"></div>
+      <input type="text" style="position: absolute; top: 0; left: 0" />
+    </div>
+
     <div id="app">
       <div>{{status}}</div>
       <div>{{userMessages}}</div>
@@ -30,16 +34,16 @@
       </div>
 
       <form @submit.prevent="send">
-        <input type="text" v-model="message">
+        <input type="text" v-model="message" />
         <button>Send</button>
       </form>
-
     </div>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.14/vue.js"
       integrity="sha512-pSyYzOKCLD2xoGM1GwkeHbdXgMRVsSqQaaUoHskx/HF09POwvow2VfVEdARIYwdeFLbu+2FCOTRYuiyeGxXkEg=="
       crossorigin="anonymous"
     ></script>
+    <script src="https://pixijs.download/release/pixi.js"></script>
     <script src="index.js"></script>
   </body>
 </html>
