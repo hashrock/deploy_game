@@ -16,13 +16,59 @@ background.y = 0
 app.stage.addChild(background)
 
 PIXI.Loader.shared.add("http://127.0.0.1:5500/public/deno.json").load(setup)
+const DENO_SPEED = 5;
+const denoTextures0 = []
+const denoTextures1 = []
+
+
+function setMove(e, deno) {
+  const dx = e.data.global.x - deno.x;
+  const dy = e.data.global.y - deno.y;
+  const d2 = dx ** 2 + dy ** 2;
+  const d = Math.sqrt(d2);
+  const t = d / DENO_SPEED;
+  const vx = dx / t;
+  const vy = dy / t;
+  deno.vx = vx
+  deno.vy = vy
+  deno.tx = e.data.global.x
+  deno.ty = e.data.global.y
+  if (deno.vx > 0) {
+    deno.scale.x = 4
+  } else {
+    deno.scale.x = -4
+  }
+  if (deno.vy > 0) {
+    deno.textures = denoTextures0
+  } else {
+    deno.textures = denoTextures1
+  }
+  deno.play()
+}
+
+function updateMove(deno) {
+  deno.x += deno.vx;
+  deno.y += deno.vy;
+  if (Math.abs(deno.tx - deno.x) <= Math.abs(deno.vx)) {
+    deno.vx = 0
+  }
+  if (Math.abs(deno.ty - deno.y) <= Math.abs(deno.vy)) {
+    deno.vy = 0
+  }
+  if (deno.vx === 0 && deno.vy === 0) {
+    deno.gotoAndStop(0)
+  }
+}
+
 
 function setup() {
-  const denoTextures = []
   for (let i = 0; i < 4; i++) {
-    denoTextures.push(PIXI.Texture.from(`deno ${i}.aseprite`))
+    denoTextures0.push(PIXI.Texture.from(`deno ${i}.aseprite`))
   }
-  const deno = new PIXI.AnimatedSprite(denoTextures)
+  for (let i = 4; i < 8; i++) {
+    denoTextures1.push(PIXI.Texture.from(`deno ${i}.aseprite`))
+  }
+  const deno = new PIXI.AnimatedSprite(denoTextures0)
 
   deno.x = app.screen.width / 2
   deno.y = app.screen.height / 2
@@ -31,45 +77,16 @@ function setup() {
   deno.scale.set(4)
 
   deno.anchor.set(0.5)
-  deno.animationSpeed = 0.1
-  deno.play()
+  deno.animationSpeed = 0.15
 
   app.stage.addChild(deno)
 
   app.stage.interactive = true
-  const v = 5;
   app.stage.on("pointerdown", (e) => {
-    const dx = e.data.global.x - deno.x;
-    const dy = e.data.global.y - deno.y;
-    const d2 = dx ** 2 + dy ** 2;
-    const d = Math.sqrt(d2);
-    const t = d / v;
-    const vx = dx / t;
-    const vy = dy / t;
-    deno.vx = vx
-    deno.vy = vy
-    deno.tx = e.data.global.x
-    deno.ty = e.data.global.y
-    deno.play()
-
-    if (deno.vx > 0) {
-      deno.scale.x = 4
-    } else {
-      deno.scale.x = -4
-    }
+    setMove(e, deno)
   })
   const update = () => {
-    deno.x += deno.vx;
-    deno.y += deno.vy;
-    if (Math.abs(deno.tx - deno.x) <= Math.abs(deno.vx)) {
-      deno.vx = 0
-    }
-    if (Math.abs(deno.ty - deno.y) <= Math.abs(deno.vy)) {
-      deno.vy = 0
-    }
-    if(deno.vx === 0 && deno.vy === 0) {
-      deno.gotoAndStop(0)
-    }
+    updateMove(deno)
     timer = setTimeout(update, 16)
   }
   update()
