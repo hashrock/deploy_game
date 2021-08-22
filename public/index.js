@@ -8,14 +8,73 @@ let app = new PIXI.Application({
 })
 document.querySelector("#canvas").appendChild(app.view)
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
-// Add map.jpg to the background
-const background = PIXI.Sprite.from("http://127.0.0.1:5500/public/denoland.jpg")
-background.width = app.screen.width * 2
-background.height = app.screen.height * 2
+
+const background = PIXI.Sprite.from("http://127.0.0.1:5500/public/bg.png")
+background.scale.set(4)
 background.x = 0
 background.y = 0
 app.stage.addChild(background)
 
+PIXI.Loader.shared.add("http://127.0.0.1:5500/public/deno.json").load(setup)
+
+function setup() {
+  const denoTextures = []
+  for (let i = 0; i < 4; i++) {
+    denoTextures.push(PIXI.Texture.from(`deno ${i}.aseprite`))
+  }
+  const deno = new PIXI.AnimatedSprite(denoTextures)
+
+  deno.x = app.screen.width / 2
+  deno.y = app.screen.height / 2
+  deno.vx = 0
+  deno.vy = 0
+  deno.scale.set(4)
+
+  deno.anchor.set(0.5)
+  deno.animationSpeed = 0.1
+  deno.play()
+
+  app.stage.addChild(deno)
+
+  app.stage.interactive = true
+  const v = 5;
+  app.stage.on("pointerdown", (e) => {
+    const dx = e.data.global.x - deno.x;
+    const dy = e.data.global.y - deno.y;
+    const d2 = dx ** 2 + dy ** 2;
+    const d = Math.sqrt(d2);
+    const t = d / v;
+    const vx = dx / t;
+    const vy = dy / t;
+    deno.vx = vx
+    deno.vy = vy
+    deno.tx = e.data.global.x
+    deno.ty = e.data.global.y
+    deno.play()
+
+    if (deno.vx > 0) {
+      deno.scale.x = 4
+    } else {
+      deno.scale.x = -4
+    }
+  })
+  const update = () => {
+    deno.x += deno.vx;
+    deno.y += deno.vy;
+    if (Math.abs(deno.tx - deno.x) <= Math.abs(deno.vx)) {
+      deno.vx = 0
+    }
+    if (Math.abs(deno.ty - deno.y) <= Math.abs(deno.vy)) {
+      deno.vy = 0
+    }
+    if(deno.vx === 0 && deno.vy === 0) {
+      deno.gotoAndStop(0)
+    }
+    timer = setTimeout(update, 16)
+  }
+  update()
+
+}
 
 
 new Vue({
