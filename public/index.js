@@ -9,13 +9,13 @@ let app = new PIXI.Application({
 document.querySelector("#canvas").appendChild(app.view)
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
 
-const background = PIXI.Sprite.from("http://127.0.0.1:5500/public/bg.png")
+const background = PIXI.Sprite.from("bg.png")
 background.scale.set(4)
 background.x = 0
 background.y = 0
 app.stage.addChild(background)
 
-PIXI.Loader.shared.add("http://127.0.0.1:5500/public/deno.json").load(setup)
+PIXI.Loader.shared.add("deno.json").load(setup)
 const DENO_SPEED = 5;
 const denoTextures0 = []
 const denoTextures1 = []
