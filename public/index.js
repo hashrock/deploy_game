@@ -65,8 +65,9 @@ function updateMove(deno) {
   }
 }
 
+const userSpriteInstances = {}
 
-function setup() {
+function setup(user) {
   for (let i = 0; i < 4; i++) {
     denoTextures0.push(PIXI.Texture.from(`deno ${i}.aseprite`))
   }
@@ -92,6 +93,8 @@ function setup() {
   })
   const update = () => {
     updateMove(deno)
+    user.position.x = deno.x
+    user.position.y = deno.y
     timer = setTimeout(update, 16)
   }
   update()
@@ -108,6 +111,10 @@ new Vue({
       user: {
         id: generateUUID(),
         name: generateSaurs(),
+        position: {
+          x: 300,
+          y: 300
+        }
       },
       users: {},
       userMessages: {},
@@ -129,6 +136,7 @@ new Vue({
       await fetch("/api/send", {
         method: "POST",
         body: JSON.stringify({ user: this.user, type: "alive", body: "" }),
+        position: { x: 0, y: 0 },
       })
     }
   },
@@ -174,13 +182,30 @@ new Vue({
         this.globalMessages = this.globalMessages.slice(-10)
       }
       if (msg.type === "alive") {
+        //もし、この人がいないならspriteを追加
+        let user = this.users[msg.user.id]
+        let userDeno = userSpriteInstances[msg.user.id]
+        if (!userDeno) {
+          //animated spriteを作成
+          userDeno = new PIXI.AnimatedSprite(denoTextures0)
+          app.stage.addChild(userDeno)
+          userSpriteInstances[msg.user.id] = userDeno
+        }else{
+        }
+        userDeno.x = msg.user.position.x
+        userDeno.y = msg.user.position.y
+        userDeno.play()
+
         this.$set(this.users, msg.user.id, msg.user)
         Object.keys(this.users).forEach(id => {
           // 1分以上古いデータを削除
           if (this.users[id].ts < Date.now() - 10 * 1000) {
             this.$delete(this.users, id)
+            //animated spriteを削除
+            app.stage.removeChild(userSpriteInstances[id])
           }
         })
+
       }
     });
     const background = PIXI.Sprite.from("bg.png")
@@ -189,7 +214,7 @@ new Vue({
     background.y = 0
     app.stage.addChild(background)
 
-    PIXI.Loader.shared.add("deno.json").load(setup)
+    PIXI.Loader.shared.add("deno.json").load(()=>{setup(this.user)})
   }
 });
 
