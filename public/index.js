@@ -9,16 +9,21 @@ let app = new PIXI.Application({
 document.querySelector("#canvas").appendChild(app.view)
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
 
-const background = PIXI.Sprite.from("bg.png")
-background.scale.set(4)
-background.x = 0
-background.y = 0
-app.stage.addChild(background)
-
-PIXI.Loader.shared.add("deno.json").load(setup)
 const DENO_SPEED = 5;
 const denoTextures0 = []
 const denoTextures1 = []
+
+//generate uuid
+function generateUUID() {
+  var d = new Date().getTime();
+  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = (d + Math.random() * 16) % 16 | 0;
+    d = Math.floor(d / 16);
+    return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+  return uuid;
+};
+
 
 
 function setMove(e, deno) {
@@ -101,7 +106,7 @@ new Vue({
       message: "",
       status: "",
       user: {
-        id: window.crypto.randomUUID(),
+        id: generateUUID(),
         name: generateSaurs(),
       },
       users: {},
@@ -178,6 +183,13 @@ new Vue({
         })
       }
     });
+    const background = PIXI.Sprite.from("bg.png")
+    background.scale.set(4)
+    background.x = 0
+    background.y = 0
+    app.stage.addChild(background)
+
+    PIXI.Loader.shared.add("deno.json").load(setup)
   }
 });
 
