@@ -26,9 +26,9 @@ function generateUUID() {
 
 
 
-function setMove(e, deno) {
-  const dx = e.data.global.x - deno.x;
-  const dy = e.data.global.y - deno.y;
+function setMove(x, y, deno) {
+  const dx = x - deno.x;
+  const dy = y - deno.y;
   const d2 = dx ** 2 + dy ** 2;
   const d = Math.sqrt(d2);
   const t = d / DENO_SPEED;
@@ -36,8 +36,8 @@ function setMove(e, deno) {
   const vy = dy / t;
   deno.vx = vx
   deno.vy = vy
-  deno.tx = e.data.global.x
-  deno.ty = e.data.global.y
+  deno.tx = x
+  deno.ty = y
   if (deno.vx > 0) {
     deno.scale.x = 4
   } else {
@@ -89,10 +89,22 @@ function setup(user) {
 
   app.stage.interactive = true
   app.stage.on("pointerdown", (e) => {
-    setMove(e, deno)
+    setMove(e.data.global.x, e.data.global.y, deno)
   })
   const update = () => {
     updateMove(deno)
+
+    for (let sprite of Object.keys(userSpriteInstances)) {
+      const spriteInstance = userSpriteInstances[sprite]
+      updateMove(spriteInstance)
+    }
+
+    // for (let i = 0; i < Object.keys(userSpriteInstances).length; i++) {
+    //   const sprite = userSpriteInstances[i]
+    //   if (sprite) {
+    //     updateMove(sprite)
+    //   }
+    // }
     user.position.x = deno.x
     user.position.y = deno.y
     timer = setTimeout(update, 16)
@@ -135,8 +147,8 @@ new Vue({
     async sendAlive() {
       await fetch("/api/send", {
         method: "POST",
-        body: JSON.stringify({ user: this.user, type: "alive", body: "" }),
-        position: { x: 0, y: 0 },
+        body: JSON.stringify({ user: this.user, type: "alive", body: "", position: { x: 0, y: 0 } }),
+
       })
     }
   },
@@ -190,11 +202,15 @@ new Vue({
           userDeno = new PIXI.AnimatedSprite(denoTextures0)
           app.stage.addChild(userDeno)
           userSpriteInstances[msg.user.id] = userDeno
-        }else{
+        } else {
         }
-        userDeno.x = msg.user.position.x
-        userDeno.y = msg.user.position.y
-        userDeno.play()
+
+        console.log(msg)
+        setMove(msg.user.position.x, msg.user.position.y, userDeno)
+
+        // userDeno.x = msg.user.position.x
+        // userDeno.y = msg.user.position.y
+        // userDeno.play()
 
         this.$set(this.users, msg.user.id, msg.user)
         Object.keys(this.users).forEach(id => {
@@ -214,7 +230,7 @@ new Vue({
     background.y = 0
     app.stage.addChild(background)
 
-    PIXI.Loader.shared.add("deno.json").load(()=>{setup(this.user)})
+    PIXI.Loader.shared.add("deno.json").load(() => { setup(this.user) })
   }
 });
 
