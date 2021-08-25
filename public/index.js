@@ -38,6 +38,7 @@ function setMove(x, y, deno) {
   deno.vy = vy
   deno.tx = x
   deno.ty = y
+  deno.scale.y = 4
   if (deno.vx > 0) {
     deno.scale.x = 4
   } else {
