@@ -34,8 +34,8 @@ function setMove(x, y, deno) {
   const t = d / DENO_SPEED;
   const vx = dx / t;
   const vy = dy / t;
-  deno.vx = vx
-  deno.vy = vy
+  deno.vx = Math.round(vx)
+  deno.vy = Math.round(vy)
   deno.tx = x
   deno.ty = y
   deno.scale.y = 4
@@ -90,7 +90,7 @@ function setup(user) {
 
   app.stage.interactive = true
   app.stage.on("pointerdown", (e) => {
-    setMove(e.data.global.x, e.data.global.y, deno)
+    setMove(Math.round(e.data.global.x), Math.round(e.data.global.y), deno)
   })
   const update = () => {
     updateMove(deno)
@@ -100,14 +100,8 @@ function setup(user) {
       updateMove(spriteInstance)
     }
 
-    // for (let i = 0; i < Object.keys(userSpriteInstances).length; i++) {
-    //   const sprite = userSpriteInstances[i]
-    //   if (sprite) {
-    //     updateMove(sprite)
-    //   }
-    // }
-    user.position.x = deno.x
-    user.position.y = deno.y
+    user.position.x = deno.tx
+    user.position.y = deno.ty
     timer = setTimeout(update, 16)
   }
   update()
@@ -148,7 +142,7 @@ new Vue({
     async sendAlive() {
       await fetch("/api/send", {
         method: "POST",
-        body: JSON.stringify({ user: this.user, type: "alive", body: "", position: { x: 0, y: 0 } }),
+        body: JSON.stringify({ user: this.user, type: "alive", body: "" }),
 
       })
     }
@@ -201,6 +195,7 @@ new Vue({
         if (!userDeno) {
           //animated spriteを作成
           userDeno = new PIXI.AnimatedSprite(denoTextures0)
+          userDeno.anchor.set(0.5)
           app.stage.addChild(userDeno)
           userSpriteInstances[msg.user.id] = userDeno
         } else {
