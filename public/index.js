@@ -27,17 +27,30 @@ function generateUUID() {
 
 
 function setMove(x, y, deno) {
+  // if same position, do nothing
+  if (deno.tx === x && deno.ty === y) {
+    deno.tx = x
+    deno.ty = y
+    return
+  }
+
+
   const dx = x - deno.x;
   const dy = y - deno.y;
   const d2 = dx ** 2 + dy ** 2;
   const d = Math.sqrt(d2);
-  const t = d / DENO_SPEED;
-  const vx = dx / t;
-  const vy = dy / t;
-  deno.vx = Math.round(vx)
-  deno.vy = Math.round(vy)
-  deno.tx = x
-  deno.ty = y
+  if (d !== 0) {
+    const t = d / DENO_SPEED;
+
+    const vx = dx / t;
+    const vy = dy / t;
+    deno.vx = Math.round(vx)
+    deno.vy = Math.round(vy)
+    deno.tx = x
+    deno.ty = y
+
+  }
+
   deno.scale.y = 4
   if (deno.vx > 0) {
     deno.scale.x = 4
@@ -57,9 +70,11 @@ function updateMove(deno) {
   deno.y += deno.vy;
   if (Math.abs(deno.tx - deno.x) <= Math.abs(deno.vx)) {
     deno.vx = 0
+    deno.x = deno.tx
   }
   if (Math.abs(deno.ty - deno.y) <= Math.abs(deno.vy)) {
     deno.vy = 0
+    deno.y = deno.ty
   }
   if (deno.vx === 0 && deno.vy === 0) {
     deno.gotoAndStop(0)
@@ -88,6 +103,15 @@ function setup(user) {
 
   app.stage.addChild(deno)
 
+  //add debug text
+  const debugText = new PIXI.Text(`${user.name}`, {
+    fontSize: 16,
+  })
+  debugText.x = 0
+  debugText.y = 100
+  app.stage.addChild(debugText)
+
+
   app.stage.interactive = true
   app.stage.on("pointerdown", (e) => {
     setMove(Math.round(e.data.global.x), Math.round(e.data.global.y), deno)
@@ -98,6 +122,13 @@ function setup(user) {
     for (let sprite of Object.keys(userSpriteInstances)) {
       const spriteInstance = userSpriteInstances[sprite]
       updateMove(spriteInstance)
+    }
+
+    // display all denos position in debug text
+    debugText.text = `${user.name} \n`
+    for (let sprite of Object.keys(userSpriteInstances)) {
+      const spriteInstance = userSpriteInstances[sprite]
+      debugText.text += `${sprite} x:${spriteInstance.x} y:${spriteInstance.y} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
     }
 
     user.position.x = deno.tx
