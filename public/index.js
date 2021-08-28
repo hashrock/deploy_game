@@ -17,6 +17,9 @@ const denoTextures1 = []
 
 function setMove(x, y, deno) {
   // if same position, do nothing
+  deno.vx = 0
+  deno.vy = 0
+
   if (deno.tx === x && deno.ty === y) {
     deno.tx = x
     deno.ty = y
@@ -70,6 +73,7 @@ function updateMove(deno) {
 }
 
 const userSpriteInstances = {}
+let myDeno = null
 
 function setup(user) {
   for (let i = 0; i < 4; i++) {
@@ -78,18 +82,18 @@ function setup(user) {
   for (let i = 4; i < 8; i++) {
     denoTextures1.push(PIXI.Texture.from(`deno ${i}.aseprite`))
   }
-  const deno = new PIXI.AnimatedSprite(denoTextures0)
+  myDeno = new PIXI.AnimatedSprite(denoTextures0)
 
-  deno.x = app.screen.width / 2
-  deno.y = app.screen.height / 2
-  deno.vx = 0
-  deno.vy = 0
-  deno.scale.set(4)
+  myDeno.x = app.screen.width / 2
+  myDeno.y = app.screen.height / 2
+  myDeno.vx = 0
+  myDeno.vy = 0
+  myDeno.scale.set(4)
 
-  deno.anchor.set(0.5)
-  deno.animationSpeed = 0.15
+  myDeno.anchor.set(0.5)
+  myDeno.animationSpeed = 0.15
 
-  app.stage.addChild(deno)
+  app.stage.addChild(myDeno)
 
   //add debug text
   const debugText = new PIXI.Text(`${user.name}`, {
@@ -102,10 +106,10 @@ function setup(user) {
 
   app.stage.interactive = true
   app.stage.on("pointerdown", (e) => {
-    setMove(Math.round(e.data.global.x), Math.round(e.data.global.y), deno)
+    setMove(Math.round(e.data.global.x), Math.round(e.data.global.y), myDeno)
   })
   const update = () => {
-    updateMove(deno)
+    updateMove(myDeno)
 
     for (let sprite of Object.keys(userSpriteInstances)) {
       const spriteInstance = userSpriteInstances[sprite]
@@ -116,11 +120,11 @@ function setup(user) {
     debugText.text = `${user.name} \n`
     for (let sprite of Object.keys(userSpriteInstances)) {
       const spriteInstance = userSpriteInstances[sprite]
-      debugText.text += `${sprite} x:${spriteInstance.x} y:${spriteInstance.y} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
+      debugText.text += `${sprite} x:${spriteInstance.position.x} y:${spriteInstance.position.x} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
     }
 
-    user.position.x = deno.tx
-    user.position.y = deno.ty
+    user.position.x = myDeno.tx
+    user.position.y = myDeno.ty
     timer = setTimeout(update, 16)
   }
   update()
@@ -211,17 +215,23 @@ new Vue({
         //もし、この人がいないならspriteを追加
         let user = this.users[msg.user.id]
         let userDeno = userSpriteInstances[msg.user.id]
-        if (!userDeno) {
-          //animated spriteを作成
-          userDeno = new PIXI.AnimatedSprite(denoTextures0)
-          userDeno.anchor.set(0.5)
-          app.stage.addChild(userDeno)
-          userSpriteInstances[msg.user.id] = userDeno
-        } else {
-        }
+        if (this.user.id != msg.user.id) {
+          if (!userDeno) {
+            //animated spriteを作成
+            userDeno = new PIXI.AnimatedSprite(denoTextures0)
+            userDeno.anchor.set(0.5)
+            userDeno.vx = 0
+            userDeno.vy = 0
+            userDeno.tx = 0
+            userDeno.ty = 0
 
-        console.log(msg)
-        setMove(msg.user.position.x, msg.user.position.y, userDeno)
+            app.stage.addChild(userDeno)
+            userSpriteInstances[msg.user.id] = userDeno
+          }
+
+          setMove(msg.user.position.x, msg.user.position.y, userDeno)
+
+        }
 
         // userDeno.x = msg.user.position.x
         // userDeno.y = msg.user.position.y
