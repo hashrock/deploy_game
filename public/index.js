@@ -1,5 +1,7 @@
 let timer
 
+import { generateSaurs, generateUUID } from "./util.js"
+
 let app = new PIXI.Application({
   width: window.innerWidth,
   height: window.innerHeight,
@@ -13,19 +15,6 @@ const DENO_SPEED = 5;
 const denoTextures0 = []
 const denoTextures1 = []
 
-//generate uuid
-function generateUUID() {
-  var d = new Date().getTime();
-  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = (d + Math.random() * 16) % 16 | 0;
-    d = Math.floor(d / 16);
-    return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-  });
-  return uuid;
-};
-
-
-
 function setMove(x, y, deno) {
   // if same position, do nothing
   if (deno.tx === x && deno.ty === y) {
@@ -33,7 +22,6 @@ function setMove(x, y, deno) {
     deno.ty = y
     return
   }
-
 
   const dx = x - deno.x;
   const dy = y - deno.y;
@@ -260,88 +248,3 @@ new Vue({
     PIXI.Loader.shared.add("deno.json").load(() => { setup(this.user) })
   }
 });
-
-
-function generateSaurs() {
-  const fruits = [
-    "apple",
-    "banana",
-    "cherry",
-    "durian",
-    "elderberry",
-    "fig",
-    "grape",
-    "huckleberry",
-    "jackfruit",
-    "kiwi",
-    "lemon",
-    "mango",
-    "nectarine",
-    "orange",
-    "papaya",
-    "quince",
-    "raspberry",
-    "strawberry",
-    "tangerine",
-    "watermelon",
-    "zucchini",
-  ]
-  const animals = [
-    "alligator",
-    "ant",
-    "bear",
-    "bee",
-    "bird",
-    "camel",
-    "cat",
-    "cheetah",
-    "chicken",
-    "chimpanzee",
-    "cow",
-    "crocodile",
-    "deer",
-    "dog",
-    "dolphin",
-    "duck",
-    "eagle",
-    "elephant",
-    "fish",
-    "fly",
-    "fox",
-    "frog",
-    "giraffe",
-    "goat",
-    "goldfish",
-    "hamster",
-    "hippopotamus",
-    "horse",
-    "kangaroo",
-    "kitten",
-    "lion",
-    "lobster",
-    "monkey",
-    "octopus",
-    "owl",
-    "panda",
-    "pig",
-    "puppy",
-    "rabbit",
-    "rat",
-    "scorpion",
-    "seal",
-    "shark",
-    "sheep",
-    "snail",
-    "snake",
-    "spider",
-    "squirrel",
-    "tiger",
-    "turtle",
-    "wolf",
-    "zebra",
-  ]
-
-  const words = [...fruits, ...animals]
-  const name = words[Math.floor(Math.random() * words.length)]
-  return `${name}saurs`
-}
