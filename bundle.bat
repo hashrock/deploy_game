@@ -1,1 +1,1 @@
-deno bundle --watch --no-check .\frontend\index.ts .\public\bundle.js
+deno bundle --watch .\frontend\index.ts .\public\bundle.js

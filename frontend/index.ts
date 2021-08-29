@@ -1,6 +1,11 @@
 let timer
 
 declare const PIXI: any;
+declare const window: any;
+declare const document: any;
+declare const EventSource: any;
+type Texture = unknown
+
 
 interface DenoSprite {
   x: number
@@ -12,6 +17,9 @@ interface DenoSprite {
   scale?: any
   anchor?: any
   animationSpeed?: number
+  textures?: Texture[]
+  gotoAndStop?: () => void
+  play?: () => void
 }
 
 import { generateSaurs, generateUUID } from "./util.ts"
@@ -26,10 +34,10 @@ document.querySelector("#canvas").appendChild(app.view)
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
 
 const DENO_SPEED = 5;
-const denoTextures0 = []
-const denoTextures1 = []
+const denoTextures0: Texture[] = []
+const denoTextures1: Texture[] = []
 
-function setMove(x, y, deno) {
+function setMove(x: number, y: number, deno: DenoSprite) {
   // if same position, do nothing
   deno.vx = 0
   deno.vy = 0
@@ -67,10 +75,11 @@ function setMove(x, y, deno) {
   } else {
     deno.textures = denoTextures1
   }
+  //@ts-ignore
   deno.play()
 }
 
-function updateMove(deno) {
+function updateMove(deno: DenoSprite) {
   deno.x += deno.vx;
   deno.y += deno.vy;
   if (Math.abs(deno.tx - deno.x) <= Math.abs(deno.vx)) {
@@ -82,15 +91,18 @@ function updateMove(deno) {
     deno.y = deno.ty
   }
   if (deno.vx === 0 && deno.vy === 0) {
+    //@ts-ignore
     deno.gotoAndStop(0)
   }
 }
 interface User {
+  id: string
   name: string
   position: {
     x: number
     y: number
   }
+  ts: number
 }
 
 
@@ -102,10 +114,10 @@ let myDeno: DenoSprite = {
   vy: 0,
   tx: 0,
   ty: 0,
-
 }
 
-function setup(user) {
+const users:Record<string, User> = {}
+function setup(user: User) {
   for (let i = 0; i < 4; i++) {
     denoTextures0.push(PIXI.Texture.from(`deno ${i}.aseprite`))
   }
@@ -135,7 +147,7 @@ function setup(user) {
 
 
   app.stage.interactive = true
-  app.stage.on("pointerdown", (e) => {
+  app.stage.on("pointerdown", (e: any) => {
     setMove(Math.round(e.data.global.x), Math.round(e.data.global.y), myDeno)
   })
   const update = () => {
@@ -169,15 +181,16 @@ async function sendAlive() {
 }
 
 let status = ""
-const user = {
+const user: User = {
   id: generateUUID(),
   name: generateSaurs(),
   position: {
     x: 300,
     y: 300
-  }
+  },
+  ts: 0
 }
-const users = []
+
 
 timer = setInterval(() => {
   if (status === "CONNECTED") {
@@ -200,7 +213,7 @@ events.addEventListener("error", () => {
       break;
   }
 });
-events.addEventListener("message", (e) => {
+events.addEventListener("message", (e: any) => {
   const msg = JSON.parse(e.data)
   // if (msg.type === "message") {
   //   userMessages[msg.user.id] = {
@@ -231,7 +244,9 @@ events.addEventListener("message", (e) => {
       app.stage.addChild(userDeno)
       userSpriteInstances[msg.user.id] = userDeno
     }
-    setMove(msg.user.position.x, msg.user.position.y, userDeno)
+    if(userDeno){
+      setMove(msg.user.position.x, msg.user.position.y, userDeno)
+    }
 
     // userDeno.x = msg.user.position.x
     // userDeno.y = msg.user.position.y
