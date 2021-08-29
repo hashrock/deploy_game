@@ -175,7 +175,8 @@ function setup(user: User) {
     debugText.text = `${user.name} \n`
     for (let sprite of Object.keys(userSpriteInstances)) {
       const spriteInstance = userSpriteInstances[sprite]
-      debugText.text += `${sprite} x:${spriteInstance.x} y:${spriteInstance.x} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
+      const user = users[sprite]
+      debugText.text += `${sprite} ${user.name} x:${spriteInstance.x} y:${spriteInstance.x} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
     }
 
     user.position.x = getMyDeno().tx
