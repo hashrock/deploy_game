@@ -73,7 +73,15 @@ function updateMove(deno) {
 }
 
 const userSpriteInstances = {}
-let myDeno = null
+let myDeno = {
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  tx: 0,
+  ty: 0,
+
+}
 
 function setup(user) {
   for (let i = 0; i < 4; i++) {
@@ -131,130 +139,98 @@ function setup(user) {
 
 }
 
+async function sendAlive() {
+  await fetch("/api/send", {
+    method: "POST",
+    body: JSON.stringify({ user: user, type: "alive", body: "" }),
+  })
+}
 
-new Vue({
-  el: "#app",
-  data() {
-    return {
-      message: "",
-      status: "",
-      user: {
-        id: generateUUID(),
-        name: generateSaurs(),
-        position: {
-          x: 300,
-          y: 300
-        }
-      },
-      users: {},
-      userMessages: {},
-      globalMessages: [],
-    }
-  },
-  methods: {
-    async send() {
-      if (this.message.length === 0) {
-        return
-      }
-      await fetch("/api/send", {
-        method: "POST",
-        body: JSON.stringify({ user: this.user, type: "message", body: this.message }),
-      })
-      this.message = ""
-    },
-    async sendAlive() {
-      await fetch("/api/send", {
-        method: "POST",
-        body: JSON.stringify({ user: this.user, type: "alive", body: "" }),
+let status = ""
+const user = {
+  id: generateUUID(),
+  name: generateSaurs(),
+  position: {
+    x: 300,
+    y: 300
+  }
+}
+const users = []
 
-      })
-    }
-  },
-  beforeDestroy() {
-    clearInterval(timer)
-  },
-  mounted() {
-    timer = setInterval(() => {
-      if (this.status === "CONNECTED") {
-        this.sendAlive()
-      }
-    }, 2000);
+timer = setInterval(() => {
+  if (status === "CONNECTED") {
+    sendAlive()
+  }
+}, 2000);
 
-    const events = new EventSource("/api/listen");
-    events.addEventListener("open", () => this.status = "CONNECTED");
-    events.addEventListener("error", () => {
-      switch (events.readyState) {
-        case EventSource.OPEN:
-          this.status = "CONNECTED"
-          break;
-        case EventSource.CONNECTING:
-          this.status = "CONNECTING"
-          break;
-        case EventSource.CLOSED:
-          this.status = "DISCONNECTED"
-          break;
-      }
-    });
-    events.addEventListener("message", (e) => {
-      const msg = JSON.parse(e.data)
-      if (msg.type === "message") {
-        this.userMessages[msg.user.id] = {
-          id: msg.id,
-          body: msg.body,
-          ts: msg.ts,
-        }
-        this.globalMessages.push({
-          id: msg.id,
-          body: msg.body,
-          ts: msg.ts,
-          user: msg.user,
-        })
-        this.globalMessages = this.globalMessages.slice(-10)
-      }
-      if (msg.type === "alive") {
-        //もし、この人がいないならspriteを追加
-        let user = this.users[msg.user.id]
-        let userDeno = userSpriteInstances[msg.user.id]
-        if (this.user.id != msg.user.id) {
-          if (!userDeno) {
-            //animated spriteを作成
-            userDeno = new PIXI.AnimatedSprite(denoTextures0)
-            userDeno.anchor.set(0.5)
-            userDeno.vx = 0
-            userDeno.vy = 0
-            userDeno.tx = 0
-            userDeno.ty = 0
-
-            app.stage.addChild(userDeno)
-            userSpriteInstances[msg.user.id] = userDeno
-          }
-
-          setMove(msg.user.position.x, msg.user.position.y, userDeno)
-
-        }
-
-        // userDeno.x = msg.user.position.x
-        // userDeno.y = msg.user.position.y
-        // userDeno.play()
-
-        this.$set(this.users, msg.user.id, msg.user)
-        Object.keys(this.users).forEach(id => {
-          // 1分以上古いデータを削除
-          if (this.users[id].ts < Date.now() - 10 * 1000) {
-            this.$delete(this.users, id)
-            //animated spriteを削除
-            app.stage.removeChild(userSpriteInstances[id])
-          }
-        })
-
-      }
-    });
-    const background = PIXI.Sprite.from("bg.png")
-    background.scale.set(4)
-    background.x = 0
-    background.y = 0
-    app.stage.addChild(background)
-
-    PIXI.Loader.shared.add("deno.json").load(() => { setup(this.user) })
+const events = new EventSource("/api/listen");
+events.addEventListener("open", () => status = "CONNECTED");
+events.addEventListener("error", () => {
+  switch (events.readyState) {
+    case EventSource.OPEN:
+      status = "CONNECTED"
+      break;
+    case EventSource.CONNECTING:
+      status = "CONNECTING"
+      break;
+    case EventSource.CLOSED:
+      status = "DISCONNECTED"
+      break;
   }
 });
+events.addEventListener("message", (e) => {
+  const msg = JSON.parse(e.data)
+  // if (msg.type === "message") {
+  //   userMessages[msg.user.id] = {
+  //     id: msg.id,
+  //     body: msg.body,
+  //     ts: msg.ts,
+  //   }
+  //   globalMessages.push({
+  //     id: msg.id,
+  //     body: msg.body,
+  //     ts: msg.ts,
+  //     user: msg.user,
+  //   })
+  //   globalMessages = globalMessages.slice(-10)
+  // }
+  if (msg.type === "alive") {
+    // let user = users[msg.user.id]
+    let userDeno = userSpriteInstances[msg.user.id]
+    if (!userDeno && msg.user.id !== user.id) {
+      //animated spriteを作成
+      userDeno = new PIXI.AnimatedSprite(denoTextures0)
+      userDeno.anchor.set(0.5)
+      userDeno.vx = 0
+      userDeno.vy = 0
+      userDeno.tx = 0
+      userDeno.ty = 0
+
+      app.stage.addChild(userDeno)
+      userSpriteInstances[msg.user.id] = userDeno
+    }
+    setMove(msg.user.position.x, msg.user.position.y, userDeno)
+
+    // userDeno.x = msg.user.position.x
+    // userDeno.y = msg.user.position.y
+    // userDeno.play()
+    users[msg.user.id] = msg.user
+
+    Object.keys(users).forEach(id => {
+      // 1分以上古いデータを削除
+      if (users[id].ts < Date.now() - 10 * 1000) {
+        delete users[id]
+        //animated spriteを削除
+        app.stage.removeChild(userSpriteInstances[id])
+      }
+    })
+
+  }
+});
+const background = PIXI.Sprite.from("bg.png")
+background.scale.set(4)
+background.x = 0
+background.y = 0
+app.stage.addChild(background)
+
+PIXI.Loader.shared.add("deno.json").load(() => { setup(user) })
