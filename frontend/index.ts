@@ -37,19 +37,19 @@ const DENO_SPEED = 5;
 const denoTextures0: Texture[] = []
 const denoTextures1: Texture[] = []
 
-function setMove(x: number, y: number, deno: DenoSprite) {
+function setMove(deno: DenoSprite) {
   // if same position, do nothing
   deno.vx = 0
   deno.vy = 0
 
-  if (deno.tx === x && deno.ty === y) {
-    deno.tx = x
-    deno.ty = y
-    return
-  }
+  // if (deno.tx === x && deno.ty === y) {
+  //   deno.tx = x
+  //   deno.ty = y
+  //   return
+  // }
 
-  const dx = x - deno.x;
-  const dy = y - deno.y;
+  const dx = deno.tx - deno.x;
+  const dy = deno.ty - deno.y;
   const d2 = dx ** 2 + dy ** 2;
   const d = Math.sqrt(d2);
   if (d !== 0) {
@@ -59,9 +59,6 @@ function setMove(x: number, y: number, deno: DenoSprite) {
     const vy = dy / t;
     deno.vx = Math.round(vx)
     deno.vy = Math.round(vy)
-    deno.tx = x
-    deno.ty = y
-
   }
 
   deno.scale.y = 4
@@ -107,14 +104,34 @@ interface User {
 
 
 const userSpriteInstances: Record<string, DenoSprite> = {}
-let myDeno: DenoSprite = {
-  x: 0,
-  y: 0,
-  vx: 0,
-  vy: 0,
-  tx: 0,
-  ty: 0,
+// let myDeno: DenoSprite = {
+//   x: 0,
+//   y: 0,
+//   vx: 0,
+//   vy: 0,
+//   tx: 0,
+//   ty: 0,
+// }
+
+function getMyDeno(){
+  return userSpriteInstances[user.id]
 }
+
+function createDenoInstance(x: number, y: number){
+  const deno = new PIXI.AnimatedSprite(denoTextures0)
+  deno.x = x
+  deno.y = y
+  deno.vx = 0
+  deno.vy = 0
+  deno.tx = x
+  deno.ty = y
+  deno.anchor.set(0.5)
+  deno.animationSpeed = 0.5
+  deno.scale.set(4)
+  deno.play()
+  return deno
+}
+
 
 const users:Record<string, User> = {}
 function setup(user: User) {
@@ -124,18 +141,13 @@ function setup(user: User) {
   for (let i = 4; i < 8; i++) {
     denoTextures1.push(PIXI.Texture.from(`deno ${i}.aseprite`))
   }
-  myDeno = new PIXI.AnimatedSprite(denoTextures0)
+  const randomx = Math.floor(Math.random() * app.stage.width)
+  const randomy = Math.floor(Math.random() * app.stage.height)
 
-  myDeno.x = app.screen.width / 2
-  myDeno.y = app.screen.height / 2
-  myDeno.vx = 0
-  myDeno.vy = 0
-  myDeno.scale.set(4)
+  const deno = createDenoInstance(randomx, randomy)
+  userSpriteInstances[user.id] = deno
 
-  myDeno.anchor.set(0.5)
-  myDeno.animationSpeed = 0.15
-
-  app.stage.addChild(myDeno)
+  app.stage.addChild(deno)
 
   //add debug text
   const debugText = new PIXI.Text(`${user.name}`, {
@@ -148,11 +160,12 @@ function setup(user: User) {
 
   app.stage.interactive = true
   app.stage.on("pointerdown", (e: any) => {
-    setMove(Math.round(e.data.global.x), Math.round(e.data.global.y), myDeno)
+    const myDeno = getMyDeno()
+    myDeno.tx = e.data.global.x
+    myDeno.ty = e.data.global.y
+    setMove(myDeno)
   })
   const update = () => {
-    updateMove(myDeno)
-
     for (let sprite of Object.keys(userSpriteInstances)) {
       const spriteInstance = userSpriteInstances[sprite]
       updateMove(spriteInstance)
@@ -165,8 +178,8 @@ function setup(user: User) {
       debugText.text += `${sprite} x:${spriteInstance.x} y:${spriteInstance.x} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
     }
 
-    user.position.x = myDeno.tx
-    user.position.y = myDeno.ty
+    user.position.x = getMyDeno().tx
+    user.position.y = getMyDeno().ty
     timer = setTimeout(update, 16)
   }
   update()
@@ -230,23 +243,18 @@ events.addEventListener("message", (e: any) => {
   //   globalMessages = globalMessages.slice(-10)
   // }
   if (msg.type === "alive") {
-    // let user = users[msg.user.id]
     let userDeno = userSpriteInstances[msg.user.id]
-    if (!userDeno && msg.user.id !== user.id) {
-      //animated spriteを作成
-      userDeno = new PIXI.AnimatedSprite(denoTextures0)
-      userDeno.anchor.set(0.5)
-      userDeno.vx = 0
-      userDeno.vy = 0
-      userDeno.tx = 0
-      userDeno.ty = 0
 
+    if (!userDeno) {
+      userDeno = createDenoInstance(msg.user.position.x, msg.user.position.y)
       app.stage.addChild(userDeno)
       userSpriteInstances[msg.user.id] = userDeno
     }
-    if(userDeno){
-      setMove(msg.user.position.x, msg.user.position.y, userDeno)
+    if(msg.user.id !== user.id){
+      userDeno.tx = msg.user.position.x
+      userDeno.ty = msg.user.position.y
     }
+    setMove(userDeno)
 
     // userDeno.x = msg.user.position.x
     // userDeno.y = msg.user.position.y
