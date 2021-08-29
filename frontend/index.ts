@@ -1,6 +1,20 @@
 let timer
 
-import { generateSaurs, generateUUID } from "./util.js"
+declare const PIXI: any;
+
+interface DenoSprite {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  tx: number
+  ty: number
+  scale?: any
+  anchor?: any
+  animationSpeed?: number
+}
+
+import { generateSaurs, generateUUID } from "./util.ts"
 
 let app = new PIXI.Application({
   width: window.innerWidth,
@@ -71,9 +85,17 @@ function updateMove(deno) {
     deno.gotoAndStop(0)
   }
 }
+interface User {
+  name: string
+  position: {
+    x: number
+    y: number
+  }
+}
 
-const userSpriteInstances = {}
-let myDeno = {
+
+const userSpriteInstances: Record<string, DenoSprite> = {}
+let myDeno: DenoSprite = {
   x: 0,
   y: 0,
   vx: 0,
@@ -128,7 +150,7 @@ function setup(user) {
     debugText.text = `${user.name} \n`
     for (let sprite of Object.keys(userSpriteInstances)) {
       const spriteInstance = userSpriteInstances[sprite]
-      debugText.text += `${sprite} x:${spriteInstance.position.x} y:${spriteInstance.position.x} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
+      debugText.text += `${sprite} x:${spriteInstance.x} y:${spriteInstance.x} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
     }
 
     user.position.x = myDeno.tx
