@@ -1,9 +1,6 @@
 let timer
 
-declare const PIXI: any;
-declare const window: any;
-declare const document: any;
-declare const EventSource: any;
+import * as PIXI from "https://pixijs.download/v6.1.2/pixi.mjs";
 type Texture = unknown
 
 
@@ -24,13 +21,14 @@ interface DenoSprite {
 
 import { generateSaurs, generateUUID } from "./util.ts"
 
+//@ts-ignore
 let app = new PIXI.Application({
   width: window.innerWidth,
   height: window.innerHeight,
   antialias: false,
   resolution: 1,
 })
-document.querySelector("#canvas").appendChild(app.view)
+document.querySelector("#canvas")?.appendChild(app.view)
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
 
 const DENO_SPEED = 5;
@@ -118,6 +116,7 @@ function getMyDeno(){
 }
 
 function createDenoInstance(x: number, y: number){
+  //@ts-ignore
   const deno = new PIXI.AnimatedSprite(denoTextures0)
   deno.x = x
   deno.y = y
@@ -136,10 +135,10 @@ function createDenoInstance(x: number, y: number){
 const users:Record<string, User> = {}
 function setup(user: User) {
   for (let i = 0; i < 4; i++) {
-    denoTextures0.push(PIXI.Texture.from(`deno ${i}.aseprite`))
+    denoTextures0.push(PIXI.Texture.from(`deno ${i}.aseprite`, {}, false))
   }
   for (let i = 4; i < 8; i++) {
-    denoTextures1.push(PIXI.Texture.from(`deno ${i}.aseprite`))
+    denoTextures1.push(PIXI.Texture.from(`deno ${i}.aseprite`, {}, false))
   }
   const randomx = Math.floor(Math.random() * app.stage.width)
   const randomy = Math.floor(Math.random() * app.stage.height)
@@ -150,6 +149,7 @@ function setup(user: User) {
   app.stage.addChild(deno)
 
   //add debug text
+  //@ts-ignore
   const debugText = new PIXI.Text(`${user.name}`, {
     fontSize: 16,
   })
@@ -272,10 +272,11 @@ events.addEventListener("message", (e: any) => {
 
   }
 });
-const background = PIXI.Sprite.from("bg.png")
+const background = PIXI.Sprite.from("bg.png", {})
 background.scale.set(4)
 background.x = 0
 background.y = 0
 app.stage.addChild(background)
 
+//@ts-ignore
 PIXI.Loader.shared.add("deno.json").load(() => { setup(user) })

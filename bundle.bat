@@ -1,1 +1,1 @@
-deno bundle --watch .\frontend\index.ts .\public\bundle.js
+packup build frontend/index.html --dist-dir public
