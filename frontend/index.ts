@@ -135,7 +135,7 @@ function createDenoInstance(x: number, y: number) {
 const users: Record<string, User> = {};
 let globalMessageText = new (PIXI.Text as any)("", {
   fontSize: 16,
-});;
+});
 function setup(user: User) {
   for (let i = 0; i < 4; i++) {
     denoTextures0.push(PIXI.Texture.from(`deno ${i}.aseprite`, {}, false));
@@ -150,7 +150,7 @@ function setup(user: User) {
   userSpriteInstances[user.id] = deno;
 
   app.stage.addChild(deno);
-  app.stage.addChild(deno.text)
+  app.stage.addChild(deno.text);
 
   const debugText = new (PIXI.Text as any)(`${user.name}`, {
     fontSize: 16,
@@ -182,7 +182,7 @@ function setup(user: User) {
       const spriteInstance = userSpriteInstances[sprite];
       const item = users[sprite];
       if (item) {
-        debugText.text = ""
+        debugText.text = "";
         if (user.id === sprite) {
           debugText.text += `(me) `;
         }
@@ -194,20 +194,18 @@ function setup(user: User) {
       const spriteInstance = userSpriteInstances[sprite];
       const item = users[sprite];
       if (item) {
-        if(userMessages[sprite]){
-          deno.text.text = 
-          userMessages[sprite].user.name + "\n" + 
-          userMessages[sprite].body;
+        if (userMessages[sprite]) {
+          deno.text.text =
+            userMessages[sprite].user.name + "\n" + userMessages[sprite].body;
         }
 
-        debugText.text = ""
+        debugText.text = "";
         if (user.id === sprite) {
           debugText.text += `(me) `;
         }
         debugText.text += `${item.name} x:${spriteInstance.x} y:${spriteInstance.y} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`;
       }
     }
-        
 
     user.position.x = getMyDeno().tx;
     user.position.y = getMyDeno().ty;
@@ -259,7 +257,7 @@ events.addEventListener("error", () => {
 
 events.addEventListener("message", (e: any) => {
   const msg = JSON.parse(e.data);
-  console.log(msg)
+  console.log(msg);
   if (msg.type === "message") {
     userMessages[msg.user.id] = {
       id: msg.id,
