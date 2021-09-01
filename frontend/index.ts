@@ -17,6 +17,7 @@ interface DenoSprite {
   textures?: Texture[];
   gotoAndStop?: () => void;
   play?: () => void;
+  text?: any;
 }
 
 const app = new (PIXI.Application as any)({
@@ -79,13 +80,17 @@ function setMove(deno: DenoSprite) {
 function updateMove(deno: DenoSprite) {
   deno.x += deno.vx;
   deno.y += deno.vy;
+  deno.text.x = deno.x;
+  deno.text.y = deno.y;
   if (Math.abs(deno.tx - deno.x) <= Math.abs(deno.vx)) {
     deno.vx = 0;
     deno.x = deno.tx;
+    deno.text.x = deno.x;
   }
   if (Math.abs(deno.ty - deno.y) <= Math.abs(deno.vy)) {
     deno.vy = 0;
     deno.y = deno.ty;
+    deno.text.y = deno.y;
   }
   if (deno.vx === 0 && deno.vy === 0) {
     //@ts-ignore
@@ -110,6 +115,10 @@ function getMyDeno() {
 
 function createDenoInstance(x: number, y: number) {
   const deno = new (PIXI.AnimatedSprite as any)(denoTextures0);
+  const denoText = new (PIXI.Text as any)(user.name, {}, false);
+  deno.text = denoText;
+  deno.text.x = x;
+  deno.text.y = y;
   deno.x = x;
   deno.y = y;
   deno.vx = 0;
@@ -141,6 +150,7 @@ function setup(user: User) {
   userSpriteInstances[user.id] = deno;
 
   app.stage.addChild(deno);
+  app.stage.addChild(deno.text)
 
   const debugText = new (PIXI.Text as any)(`${user.name}`, {
     fontSize: 16,
@@ -179,6 +189,25 @@ function setup(user: User) {
         debugText.text += `${item.name} x:${spriteInstance.x} y:${spriteInstance.y} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`;
       }
     }
+
+    for (const sprite of Object.keys(userSpriteInstances)) {
+      const spriteInstance = userSpriteInstances[sprite];
+      const item = users[sprite];
+      if (item) {
+        if(userMessages[sprite]){
+          deno.text.text = 
+          userMessages[sprite].user.name + "\n" + 
+          userMessages[sprite].body;
+        }
+
+        debugText.text = ""
+        if (user.id === sprite) {
+          debugText.text += `(me) `;
+        }
+        debugText.text += `${item.name} x:${spriteInstance.x} y:${spriteInstance.y} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`;
+      }
+    }
+        
 
     user.position.x = getMyDeno().tx;
     user.position.y = getMyDeno().ty;
@@ -257,6 +286,7 @@ events.addEventListener("message", (e: any) => {
     if (!userDeno) {
       userDeno = createDenoInstance(msg.user.position.x, msg.user.position.y);
       app.stage.addChild(userDeno);
+      app.stage.addChild(userDeno.text);
       userSpriteInstances[msg.user.id] = userDeno;
     }
     if (msg.user.id !== user.id) {
