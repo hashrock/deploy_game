@@ -151,12 +151,16 @@ function setup(user: User) {
     }
 
     // display all denos position in debug text
-    // debugText.text = `${user.name} \n`
-    // for (let sprite of Object.keys(userSpriteInstances)) {
-    //   const spriteInstance = userSpriteInstances[sprite]
-    //   const user = users[sprite]
-    //   debugText.text += `${sprite} ${user.name} x:${spriteInstance.x} y:${spriteInstance.x} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
-    // }
+    for (let sprite of Object.keys(userSpriteInstances)) {
+      const spriteInstance = userSpriteInstances[sprite]
+      const item = users[sprite]
+      if(item){
+        if(user.id === sprite){
+          debugText.text += `(me) `
+        }
+        debugText.text += `${item.name} x:${spriteInstance.x} y:${spriteInstance.y} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
+      }
+    }
 
     user.position.x = getMyDeno().tx;
     user.position.y = getMyDeno().ty;
