@@ -1,4 +1,3 @@
-
 import * as PIXI from "https://pixijs.download/v6.1.2/pixi.mjs";
 import { generateSaurs, generateUUID } from "./util.ts";
 
@@ -20,13 +19,23 @@ interface DenoSprite {
   play?: () => void;
 }
 
-
 const app = new (PIXI.Application as any)({
   width: window.innerWidth,
   height: window.innerHeight,
   antialias: false,
   resolution: 1,
 });
+
+interface Message {
+  id: string;
+  body: string;
+  ts: number;
+  user: User;
+}
+
+let globalMessages: Message[] = [];
+const userMessages: { [key: string]: Message } = {};
+
 document.querySelector("#canvas")?.appendChild(app.view);
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
@@ -115,6 +124,9 @@ function createDenoInstance(x: number, y: number) {
 }
 
 const users: Record<string, User> = {};
+let globalMessageText = new (PIXI.Text as any)("", {
+  fontSize: 16,
+});;
 function setup(user: User) {
   for (let i = 0; i < 4; i++) {
     denoTextures0.push(PIXI.Texture.from(`deno ${i}.aseprite`, {}, false));
@@ -137,6 +149,11 @@ function setup(user: User) {
   debugText.y = 100;
   app.stage.addChild(debugText);
 
+  //display global messages
+  globalMessageText.x = 600;
+  globalMessageText.y = 0;
+  app.stage.addChild(globalMessageText);
+
   app.stage.interactive = true;
   app.stage.on("pointerdown", (e: any) => {
     const myDeno = getMyDeno();
@@ -145,20 +162,21 @@ function setup(user: User) {
     setMove(myDeno);
   });
   const update = () => {
-    for (let sprite of Object.keys(userSpriteInstances)) {
+    for (const sprite of Object.keys(userSpriteInstances)) {
       const spriteInstance = userSpriteInstances[sprite];
       updateMove(spriteInstance);
     }
 
     // display all denos position in debug text
-    for (let sprite of Object.keys(userSpriteInstances)) {
-      const spriteInstance = userSpriteInstances[sprite]
-      const item = users[sprite]
-      if(item){
-        if(user.id === sprite){
-          debugText.text += `(me) `
+    for (const sprite of Object.keys(userSpriteInstances)) {
+      const spriteInstance = userSpriteInstances[sprite];
+      const item = users[sprite];
+      if (item) {
+        debugText.text = ""
+        if (user.id === sprite) {
+          debugText.text += `(me) `;
         }
-        debugText.text += `${item.name} x:${spriteInstance.x} y:${spriteInstance.y} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
+        debugText.text += `${item.name} x:${spriteInstance.x} y:${spriteInstance.y} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`;
       }
     }
 
@@ -166,6 +184,7 @@ function setup(user: User) {
     user.position.y = getMyDeno().ty;
     timer = setTimeout(update, 16);
   };
+
   update();
 }
 
@@ -208,22 +227,30 @@ events.addEventListener("error", () => {
       break;
   }
 });
+
 events.addEventListener("message", (e: any) => {
   const msg = JSON.parse(e.data);
-  // if (msg.type === "message") {
-  //   userMessages[msg.user.id] = {
-  //     id: msg.id,
-  //     body: msg.body,
-  //     ts: msg.ts,
-  //   }
-  //   globalMessages.push({
-  //     id: msg.id,
-  //     body: msg.body,
-  //     ts: msg.ts,
-  //     user: msg.user,
-  //   })
-  //   globalMessages = globalMessages.slice(-10)
-  // }
+  console.log(msg)
+  if (msg.type === "message") {
+    userMessages[msg.user.id] = {
+      id: msg.id,
+      body: msg.body,
+      ts: msg.ts,
+      user: msg.user,
+    };
+    globalMessages.push({
+      id: msg.id,
+      body: msg.body,
+      ts: msg.ts,
+      user: msg.user,
+    });
+    globalMessages = globalMessages.slice(-10);
+
+    globalMessageText.text = globalMessages
+      .map((m) => `${m.user.name}: ${m.body}`)
+      .join("\n");
+  }
+
   if (msg.type === "alive") {
     let userDeno = userSpriteInstances[msg.user.id];
 
@@ -238,16 +265,11 @@ events.addEventListener("message", (e: any) => {
     }
     setMove(userDeno);
 
-    // userDeno.x = msg.user.position.x
-    // userDeno.y = msg.user.position.y
-    // userDeno.play()
     users[msg.user.id] = msg.user;
 
     Object.keys(users).forEach((id) => {
-      // 1分以上古いデータを削除
       if (users[id].ts < Date.now() - 10 * 1000) {
         delete users[id];
-        //animated spriteを削除
         app.stage.removeChild(userSpriteInstances[id]);
       }
     });
