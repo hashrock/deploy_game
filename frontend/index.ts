@@ -172,12 +172,12 @@ function setup(user: User) {
     }
 
     // display all denos position in debug text
-    debugText.text = `${user.name} \n`
-    for (let sprite of Object.keys(userSpriteInstances)) {
-      const spriteInstance = userSpriteInstances[sprite]
-      const user = users[sprite]
-      debugText.text += `${sprite} ${user.name} x:${spriteInstance.x} y:${spriteInstance.x} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
-    }
+    // debugText.text = `${user.name} \n`
+    // for (let sprite of Object.keys(userSpriteInstances)) {
+    //   const spriteInstance = userSpriteInstances[sprite]
+    //   const user = users[sprite]
+    //   debugText.text += `${sprite} ${user.name} x:${spriteInstance.x} y:${spriteInstance.x} tx:${spriteInstance.tx} ty:${spriteInstance.ty} \n`
+    // }
 
     user.position.x = getMyDeno().tx
     user.position.y = getMyDeno().ty
@@ -281,3 +281,22 @@ app.stage.addChild(background)
 
 //@ts-ignore
 PIXI.Loader.shared.add("deno.json").load(() => { setup(user) })
+
+async function sendMessage(message: string){
+  if (message.length === 0) {
+    return
+  }
+  await fetch("/api/send", {
+    method: "POST",
+    body: JSON.stringify({ user: user, type: "message", body: message }),
+  })
+}
+
+
+document.querySelector("#messageForm")?.addEventListener("submit", (e: any) => {
+  e.preventDefault()
+  const message = document.querySelector("#messageInput") as HTMLInputElement
+  const body = message.value
+  message.value = ""
+  sendMessage(body)
+})

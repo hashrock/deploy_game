@@ -1,0 +1,1 @@
+packup build frontend/index.html --dist-dir public
