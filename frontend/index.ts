@@ -21,7 +21,7 @@ interface DenoSprite {
 }
 
 
-let app = new (PIXI.Application as any)({
+const app = new (PIXI.Application as any)({
   width: window.innerWidth,
   height: window.innerHeight,
   antialias: false,
