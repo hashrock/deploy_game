@@ -1,28 +1,47 @@
-import './style.css'
-import * as PIXI from 'pixi.js'
+import "./style.css";
+import * as PIXI from "pixi.js";
 
 import { generateSaurs, generateUUID } from "./util";
 
-// let timer;
-type Texture = unknown;
+class DenoSprite extends PIXI.Container {
+  vx: number = 0;
+  vy: number = 0;
+  tx: number = 0;
+  ty: number = 0;
+  _text: PIXI.Text = new PIXI.Text("HELLO", {});
+  _sprite: PIXI.AnimatedSprite;
 
-interface DenoSprite {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  tx: number;
-  ty: number;
-  scale?: any;
-  anchor?: any;
-  animationSpeed?: number;
-  textures?: Texture[];
-  gotoAndStop?: () => void;
-  play?: () => void;
-  text?: any;
+  constructor(texture: PIXI.Texture[], x: number, y: number) {
+    super();
+    this._sprite = new PIXI.AnimatedSprite(texture);
+    this.x = x;
+    this.y = y;
+    this.tx = x;
+    this.ty = y;
+    this.addChild(this._sprite);
+    this._sprite.position.set(0, 0);
+    this._sprite.anchor.set(0.5);
+    this._sprite.animationSpeed = 0.5;
+    this.addChild(this._text);
+    this._text.position.set(0, -50);
+  }
+
+  set text(v: string) {
+    this._text.text = v;
+  }
+
+  // set x(v: number) {
+  //   this.x = v;
+  //   this._text.x = v;
+  // }
+
+  // set y(v: number) {
+  //   this.x = v;
+  //   this._text.x = v;
+  // }
 }
 
-const app = new (PIXI.Application as any)({
+const app = new PIXI.Application({
   width: window.innerWidth,
   height: window.innerHeight,
   antialias: false,
@@ -43,8 +62,8 @@ document.querySelector("#canvas")?.appendChild(app.view);
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 
 const DENO_SPEED = 5;
-const denoTextures0: Texture[] = [];
-const denoTextures1: Texture[] = [];
+const denoTextures0: PIXI.Texture[] = [];
+const denoTextures1: PIXI.Texture[] = [];
 
 function setMove(deno: DenoSprite) {
   // if same position, do nothing
@@ -66,37 +85,32 @@ function setMove(deno: DenoSprite) {
 
   deno.scale.y = 4;
   if (deno.vx > 0) {
-    deno.scale.x = 4;
+    deno._sprite.scale.x = 4;
   } else {
-    deno.scale.x = -4;
+    deno._sprite.scale.x = -4;
   }
   if (deno.vy > 0) {
-    deno.textures = denoTextures0;
+    deno._sprite.textures = denoTextures0;
   } else {
-    deno.textures = denoTextures1;
+    deno._sprite.textures = denoTextures1;
   }
-  //@ts-ignore
-  deno.play();
+
+  deno._sprite.play();
 }
 
 function updateMove(deno: DenoSprite) {
   deno.x += deno.vx;
   deno.y += deno.vy;
-  deno.text.x = deno.x;
-  deno.text.y = deno.y;
   if (Math.abs(deno.tx - deno.x) <= Math.abs(deno.vx)) {
     deno.vx = 0;
     deno.x = deno.tx;
-    deno.text.x = deno.x;
   }
   if (Math.abs(deno.ty - deno.y) <= Math.abs(deno.vy)) {
     deno.vy = 0;
     deno.y = deno.ty;
-    deno.text.y = deno.y;
   }
   if (deno.vx === 0 && deno.vy === 0) {
-    //@ts-ignore
-    deno.gotoAndStop(0);
+    deno._sprite.gotoAndStop(0);
   }
 }
 interface User {
@@ -116,26 +130,13 @@ function getMyDeno() {
 }
 
 function createDenoInstance(x: number, y: number) {
-  const deno = new (PIXI.AnimatedSprite as any)(denoTextures0);
-  const denoText = new (PIXI.Text as any)(user.name, {}, false);
-  deno.text = denoText;
-  deno.text.x = x;
-  deno.text.y = y;
-  deno.x = x;
-  deno.y = y;
-  deno.vx = 0;
-  deno.vy = 0;
-  deno.tx = x;
-  deno.ty = y;
-  deno.anchor.set(0.5);
-  deno.animationSpeed = 0.5;
-  deno.scale.set(4);
-  deno.play();
+  const deno = new DenoSprite(denoTextures0, x, y);
+  deno._sprite.play();
   return deno;
 }
 
 const users: Record<string, User> = {};
-let globalMessageText = new (PIXI.Text as any)("", {
+let globalMessageText = new PIXI.Text("", {
   fontSize: 16,
 });
 function setup(user: User) {
@@ -152,9 +153,9 @@ function setup(user: User) {
   userSpriteInstances[user.id] = deno;
 
   app.stage.addChild(deno);
-  app.stage.addChild(deno.text);
+  app.stage.addChild(deno._text);
 
-  const debugText = new (PIXI.Text as any)(`${user.name}`, {
+  const debugText = new PIXI.Text(`${user.name}`, {
     fontSize: 16,
   });
   debugText.x = 0;
@@ -167,7 +168,7 @@ function setup(user: User) {
   app.stage.addChild(globalMessageText);
 
   app.stage.interactive = true;
-  app.stage.on("pointerdown", (e: any) => {
+  app.stage.on("pointerdown", (e) => {
     const myDeno = getMyDeno();
     myDeno.tx = e.data.global.x;
     myDeno.ty = e.data.global.y;
@@ -197,7 +198,7 @@ function setup(user: User) {
       const item = users[sprite];
       if (item) {
         if (userMessages[sprite]) {
-          deno.text.text =
+          deno.text =
             userMessages[sprite].user.name + "\n" + userMessages[sprite].body;
         }
 
@@ -257,7 +258,7 @@ events.addEventListener("error", () => {
   }
 });
 
-events.addEventListener("message", (e: any) => {
+events.addEventListener("message", (e) => {
   const msg = JSON.parse(e.data);
   console.log(msg);
   if (msg.type === "message") {
@@ -286,7 +287,6 @@ events.addEventListener("message", (e: any) => {
     if (!userDeno) {
       userDeno = createDenoInstance(msg.user.position.x, msg.user.position.y);
       app.stage.addChild(userDeno);
-      app.stage.addChild(userDeno.text);
       userSpriteInstances[msg.user.id] = userDeno;
     }
     if (msg.user.id !== user.id) {
@@ -311,7 +311,6 @@ background.x = 0;
 background.y = 0;
 app.stage.addChild(background);
 
-//@ts-ignore
 PIXI.Loader.shared.add("deno.json").load(() => {
   setup(user);
 });
@@ -326,7 +325,7 @@ async function sendMessage(message: string) {
   });
 }
 
-document.querySelector("#messageForm")?.addEventListener("submit", (e: any) => {
+document.querySelector("#messageForm")?.addEventListener("submit", (e) => {
   e.preventDefault();
   const message = document.querySelector("#messageInput") as HTMLInputElement;
   const body = message.value;
