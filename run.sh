@@ -1,0 +1,1 @@
+deployctl run --libs=ns,fetchevent --watch main.ts
