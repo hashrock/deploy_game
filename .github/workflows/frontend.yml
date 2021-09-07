@@ -30,6 +30,7 @@ jobs:
         npm install
         npm run build
         cd ..
+        cp -RT frontend/dist server/public
         
     - name: Deploy website
       uses: peaceiris/actions-gh-pages@v3
