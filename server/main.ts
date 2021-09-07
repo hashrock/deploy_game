@@ -1,8 +1,13 @@
 import {
   serve,
   serveStatic,
-  json
+  json,
 } from "https://deno.land/x/sift@0.3.5/mod.ts";
+import { join } from "https://deno.land/std@0.106.0/path/mod.ts";
+import {
+  contentType as getContentType,
+  lookup,
+} from "https://raw.githubusercontent.com/usesift/media_types/34656bf398c81f2687fa5010e56844dac4e7a2e9/mod.ts";
 
 export interface Message {
   id: string;
@@ -73,6 +78,26 @@ serve({
       headers: { "content-type": "text/event-stream" },
     });
   },
-  "/:filename+": serveStatic("public", { baseUrl: import.meta.url }),
+  "/:filename+": async (request, params) => {
+    const filename = join("public", ...params.filename);
+    try {
+      const contentType: string | undefined = getContentType(filename);
+      const file = await Deno.readFile(filename);
+
+      if (contentType !== undefined) {
+        return new Response(file, {
+          headers: {
+            "content-type": contentType,
+          },
+        });
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    return new Response("Not Found", {
+      status: 404,
+    });
+  },
   404: () => new Response("not found"),
 });
