@@ -29,11 +29,9 @@ jobs:
         cd frontend
         npm install
         npm run build
-        cd ..
-        cp -RT frontend/dist server/public
         
-    - name: Deploy website
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@4.1.5
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./server
+        branch: gh-pages # The branch the action should deploy to.
+        folder: server # The folder the action should deploy.
