@@ -26,8 +26,40 @@ interface User {
   ts: number;
 }
 
+const files = [
+  "index.html",
+  "assets/index.css",
+  "assets/index.js",
+  "assets/vendor.js",
+  "bg.png",
+  "deno.json",
+  "deno.png",
+];
+const BASE_PATH = "/";
+const PUBLIC_PATH = "./public";
+
+async function createResponse(fileName: string) {
+  const file = await Deno.readFile(fileName);
+  const contentType = lookup(fileName) || "text/plain";
+  const response = new Response(file);
+  response.headers.set("content-type", contentType);
+  return response;
+}
+
+async function handleRequest(request: Request) {
+  const { pathname } = new URL(request.url);
+  for (const file of files) {
+    if (pathname.startsWith(BASE_PATH + file)) {
+      return await createResponse(join(PUBLIC_PATH, file));
+    }
+  }
+  return createResponse(join(PUBLIC_PATH, files[0]));
+}
+
 serve({
-  "/": serveStatic("public/index.html", { baseUrl: import.meta.url }),
+  "/": async (request: Request) => {
+    return await handleRequest(request);
+  },
   "/api/send": async (req) => {
     const msg = await req.json();
 
@@ -79,20 +111,10 @@ serve({
     });
   },
   "/:filename+": async (request, params) => {
-    const filename = join("public", ...params.filename);
     try {
-      const contentType: string | undefined = getContentType(filename);
-      const file = await Deno.readFile(filename);
-
-      if (contentType !== undefined) {
-        return new Response(file, {
-          headers: {
-            "content-type": contentType,
-          },
-        });
-      }
+      return await handleRequest(request);
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
 
     return new Response("Not Found", {
