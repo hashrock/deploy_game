@@ -84,15 +84,17 @@ function setMove(deno: DenoSprite) {
   }
 
   deno.scale.y = 4;
-  if (deno.vx > 0) {
-    deno._sprite.scale.x = 4;
-  } else {
-    deno._sprite.scale.x = -4;
-  }
-  if (deno.vy > 0) {
-    deno._sprite.textures = denoTextures0;
-  } else {
-    deno._sprite.textures = denoTextures1;
+  if(deno.vx != 0 || deno.vy != 0) {
+    if (deno.vx > 0) {
+      deno._sprite.scale.x = 4;
+    } else {
+      deno._sprite.scale.x = -4;
+    }
+    if (deno.vy > 0) {
+      deno._sprite.textures = denoTextures0;
+    } else {
+      deno._sprite.textures = denoTextures1;
+    }
   }
 
   deno._sprite.play();
@@ -260,7 +262,7 @@ events.addEventListener("error", () => {
 
 events.addEventListener("message", (e) => {
   const msg = JSON.parse(e.data);
-  console.log(msg);
+  // console.log(msg);
   if (msg.type === "message") {
     userMessages[msg.user.id] = {
       id: msg.id,
