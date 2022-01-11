@@ -1,0 +1,1 @@
+deployctl deploy --project=deno-game ./main.ts
