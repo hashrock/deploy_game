@@ -1,1 +1,1 @@
-deployctl run --libs=ns,fetchevent --watch main.ts
+deno run -A main.ts
