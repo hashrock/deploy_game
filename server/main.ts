@@ -1,13 +1,9 @@
-import {
-  serve,
-  serveStatic,
-  json,
-} from "https://deno.land/x/sift@0.3.5/mod.ts";
+import { serve, serveStatic, json } from "https://deno.land/x/sift@0.4.2/mod.ts";
 import { join } from "https://deno.land/std@0.106.0/path/mod.ts";
 import {
   contentType as getContentType,
   lookup,
-} from "https://raw.githubusercontent.com/usesift/media_types/34656bf398c81f2687fa5010e56844dac4e7a2e9/mod.ts";
+} from "https://deno.land/x/media_types@v2.10.2/mod.ts";
 
 export interface Message {
   id: string;
